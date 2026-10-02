@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Frontend Analytics</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .loading { background-color: #fff3cd; border-color: #ffeaa7; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>Frontend Analytics Test</h1>
+    <p>Testing if frontend can fetch analytics data from backend (port 3001)</p>
+    
+    <button onclick="testAnalytics()">Test Analytics Data Fetching</button>
+    <div id="results"></div>
+
+    <script>
+        async function testAnalytics() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="result loading">🔄 Testing analytics endpoints...</div>';
+            
+            const endpoints = [
+                { path: '/analytics/overview', name: 'Overview' },
+                { path: '/analytics/bookings', name: 'Bookings Analytics' },
+                { path: '/analytics/revenue', name: 'Revenue Analytics' },
+                { path: '/analytics/cars', name: 'Cars Analytics' },
+                { path: '/analytics/popular-cars', name: 'Popular Cars' },
+                { path: '/analytics/search-trends', name: 'Search Trends' }
+            ];
+            
+            resultsDiv.innerHTML = '';
+            
+            for (const endpoint of endpoints) {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'result loading';
+                resultDiv.innerHTML = `<h3>🔄 Testing ${endpoint.name}...</h3>`;
+                resultsDiv.appendChild(resultDiv);
+                
+                try {
+                    console.log(`Testing: ${endpoint.path}`);
+                    const response = await fetch(`http://localhost:3001/api${endpoint.path}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        resultDiv.className = 'result success';
+                        
+                        let summary = '';
+                        if (endpoint.path === '/analytics/overview') {
+                            summary = `Cars: ${data.totalCars}, Users: ${data.totalUsers}, Revenue: ₹${data.totalRevenue}`;
+                        } else if (endpoint.path === '/analytics/popular-cars') {
+                            summary = `${data.length} cars found`;
+                        } else if (endpoint.path === '/analytics/search-trends') {
+                            summary = `${data.totalSearches} total searches, ${data.topCities?.length || 0} cities`;
+                        } else if (endpoint.path === '/analytics/bookings') {
+                            summary = `${data.bookingsByDate?.length || 0} date entries, ${data.statusDistribution?.length || 0} status types`;
+                        } else if (endpoint.path === '/analytics/revenue') {
+                            summary = `${data.revenueByDate?.length || 0} date entries, Growth: ${data.monthlyComparison?.growthRate || 0}%`;
+                        } else if (endpoint.path === '/analytics/cars') {
+                            summary = `${data.totalCars} total, ${data.availableCars} available, ${data.utilizationRate}% utilization`;
+                        }
+                        
+                        resultDiv.innerHTML = `
+                            <h3>✅ ${endpoint.name}</h3>
+                            <p><strong>Summary:</strong> ${summary}</p>
+                            <details>
+                                <summary>View Raw Data</summary>
+                                <pre>${JSON.stringify(data, null, 2)}</pre>
+                            </details>
+                        `;
+                    } else {
+                        const errorText = await response.text();
+                        resultDiv.className = 'result error';
+                        resultDiv.innerHTML = `
+                            <h3>❌ ${endpoint.name}</h3>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <p><strong>Error:</strong> ${errorText}</p>
+                        `;
+                    }
+                } catch (error) {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <h3>❌ ${endpoint.name}</h3>
+                        <p><strong>Network Error:</strong> ${error.message}</p>
+                        <p>Make sure the backend is running on port 3001</p>
+                    `;
+                }
+            }
+        }
+        
+        // Auto-run test on page load
+        window.addEventListener('load', () => {
+            setTimeout(testAnalytics, 1000);
+        });
+    </script>
+</body>
+</html>

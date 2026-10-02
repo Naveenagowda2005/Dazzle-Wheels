@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Analytics Frontend</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .loading { background-color: #fff3cd; border-color: #ffeaa7; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Analytics Frontend Test</h1>
+        <p>Testing analytics API endpoints from frontend (port 3002)</p>
+        
+        <div class="test-section">
+            <h3>Authentication Status</h3>
+            <div id="auth-status">Not tested</div>
+            <button onclick="testAuth()">Test Admin Login</button>
+        </div>
+
+        <div class="test-section">
+            <h3>Analytics Overview</h3>
+            <div id="overview-status">Not tested</div>
+            <button onclick="testOverview()">Test Overview API</button>
+            <pre id="overview-data"></pre>
+        </div>
+
+        <div class="test-section">
+            <h3>Revenue Analytics</h3>
+            <div id="revenue-status">Not tested</div>
+            <button onclick="testRevenue()">Test Revenue API</button>
+            <pre id="revenue-data"></pre>
+        </div>
+
+        <div class="test-section">
+            <h3>Bookings Analytics</h3>
+            <div id="bookings-status">Not tested</div>
+            <button onclick="testBookings()">Test Bookings API</button>
+            <pre id="bookings-data"></pre>
+        </div>
+
+        <div class="test-section">
+            <h3>Popular Cars</h3>
+            <div id="cars-status">Not tested</div>
+            <button onclick="testPopularCars()">Test Popular Cars API</button>
+            <pre id="cars-data"></pre>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001/api';
+        let authToken = null;
+
+        async function testAuth() {
+            const statusDiv = document.getElementById('auth-status');
+            statusDiv.className = 'loading';
+            statusDiv.textContent = 'Testing authentication...';
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@dazzlewheels.com',
+                        password: 'DazzleAdmin@2024!'
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    authToken = data.access_token;
+                    statusDiv.className = 'success';
+                    statusDiv.textContent = '✅ Authentication successful!';
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                statusDiv.className = 'error';
+                statusDiv.textContent = `❌ Authentication failed: ${error.message}`;
+            }
+        }
+
+        async function testOverview() {
+            if (!authToken) {
+                alert('Please authenticate first!');
+                return;
+            }
+
+            const statusDiv = document.getElementById('overview-status');
+            const dataDiv = document.getElementById('overview-data');
+            
+            statusDiv.className = 'loading';
+            statusDiv.textContent = 'Testing overview API...';
+
+            try {
+                const response = await fetch(`${API_BASE}/analytics/overview`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    statusDiv.className = 'success';
+                    statusDiv.textContent = '✅ Overview API working!';
+                    dataDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                statusDiv.className = 'error';
+                statusDiv.textContent = `❌ Overview API failed: ${error.message}`;
+                dataDiv.textContent = '';
+            }
+        }
+
+        async function testRevenue() {
+            if (!authToken) {
+                alert('Please authenticate first!');
+                return;
+            }
+
+            const statusDiv = document.getElementById('revenue-status');
+            const dataDiv = document.getElementById('revenue-data');
+            
+            statusDiv.className = 'loading';
+            statusDiv.textContent = 'Testing revenue API...';
+
+            try {
+                const response = await fetch(`${API_BASE}/analytics/revenue?period=30d`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    statusDiv.className = 'success';
+                    statusDiv.textContent = '✅ Revenue API working!';
+                    dataDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                statusDiv.className = 'error';
+                statusDiv.textContent = `❌ Revenue API failed: ${error.message}`;
+                dataDiv.textContent = '';
+            }
+        }
+
+        async function testBookings() {
+            if (!authToken) {
+                alert('Please authenticate first!');
+                return;
+            }
+
+            const statusDiv = document.getElementById('bookings-status');
+            const dataDiv = document.getElementById('bookings-data');
+            
+            statusDiv.className = 'loading';
+            statusDiv.textContent = 'Testing bookings API...';
+
+            try {
+                const response = await fetch(`${API_BASE}/analytics/bookings?period=30d`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    statusDiv.className = 'success';
+                    statusDiv.textContent = '✅ Bookings API working!';
+                    dataDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                statusDiv.className = 'error';
+                statusDiv.textContent = `❌ Bookings API failed: ${error.message}`;
+                dataDiv.textContent = '';
+            }
+        }
+
+        async function testPopularCars() {
+            if (!authToken) {
+                alert('Please authenticate first!');
+                return;
+            }
+
+            const statusDiv = document.getElementById('cars-status');
+            const dataDiv = document.getElementById('cars-data');
+            
+            statusDiv.className = 'loading';
+            statusDiv.textContent = 'Testing popular cars API...';
+
+            try {
+                const response = await fetch(`${API_BASE}/analytics/popular-cars`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    statusDiv.className = 'success';
+                    statusDiv.textContent = '✅ Popular Cars API working!';
+                    dataDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                statusDiv.className = 'error';
+                statusDiv.textContent = `❌ Popular Cars API failed: ${error.message}`;
+                dataDiv.textContent = '';
+            }
+        }
+
+        // Auto-test authentication on page load
+        window.onload = function() {
+            testAuth();
+        };
+    </script>
+</body>
+</html>

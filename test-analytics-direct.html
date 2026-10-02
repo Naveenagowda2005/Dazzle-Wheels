@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Analytics Direct</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+    </style>
+</head>
+<body>
+    <h1>Test Analytics API Direct</h1>
+    <button onclick="testAnalytics()">Test Analytics Endpoints</button>
+    <div id="results"></div>
+
+    <script>
+        async function testAnalytics() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>Testing analytics endpoints...</p>';
+            
+            const endpoints = [
+                '/api/analytics/overview',
+                '/api/analytics/bookings',
+                '/api/analytics/revenue',
+                '/api/analytics/cars',
+                '/api/analytics/popular-cars',
+                '/api/analytics/search-trends'
+            ];
+            
+            for (const endpoint of endpoints) {
+                try {
+                    console.log(`Testing: ${endpoint}`);
+                    const response = await fetch(`http://localhost:3001${endpoint}`);
+                    
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'result';
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        resultDiv.className += ' success';
+                        resultDiv.innerHTML = `
+                            <h3>✅ ${endpoint}</h3>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        `;
+                    } else {
+                        const errorText = await response.text();
+                        resultDiv.className += ' error';
+                        resultDiv.innerHTML = `
+                            <h3>❌ ${endpoint}</h3>
+                            <p>Status: ${response.status}</p>
+                            <p>Error: ${errorText}</p>
+                        `;
+                    }
+                    
+                    resultsDiv.appendChild(resultDiv);
+                } catch (error) {
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <h3>❌ ${endpoint}</h3>
+                        <p>Error: ${error.message}</p>
+                    `;
+                    resultsDiv.appendChild(resultDiv);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

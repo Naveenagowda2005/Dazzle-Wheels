@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Connection Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 20px; margin: 5px; }
+        pre { background: #f8f9fa; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Dazzle Wheels API Connection Test</h1>
+    
+    <div class="test">
+        <h3>Environment Variables</h3>
+        <p><strong>API URL:</strong> <span id="apiUrl">Loading...</span></p>
+        <p><strong>Frontend URL:</strong> <span id="frontendUrl">Loading...</span></p>
+    </div>
+
+    <div class="test">
+        <h3>Backend Connectivity</h3>
+        <button onclick="testBackendConnection()">Test Backend Connection</button>
+        <div id="backendResult"></div>
+    </div>
+
+    <div class="test">
+        <h3>Admin Login Test</h3>
+        <button onclick="testAdminLogin()">Test Admin Login</button>
+        <div id="loginResult"></div>
+    </div>
+
+    <div class="test">
+        <h3>CORS Test</h3>
+        <button onclick="testCORS()">Test CORS</button>
+        <div id="corsResult"></div>
+    </div>
+
+    <script>
+        // Load environment variables
+        document.getElementById('apiUrl').textContent = 'http://localhost:3001/api';
+        document.getElementById('frontendUrl').textContent = 'http://localhost:3003';
+
+        async function testBackendConnection() {
+            const result = document.getElementById('backendResult');
+            result.innerHTML = '<p>Testing backend connection...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/cars', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    result.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Backend Connection Successful</h4>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <p><strong>Cars Found:</strong> ${data.cars ? data.cars.length : 0}</p>
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Backend Connection Failed</h4>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <p><strong>Status Text:</strong> ${response.statusText}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Network Error</h4>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p>This usually means the backend server is not running or not accessible.</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testAdminLogin() {
+            const result = document.getElementById('loginResult');
+            result.innerHTML = '<p>Testing admin login...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@dazzlewheels.com',
+                        password: 'your-admin-password'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    result.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Admin Login Successful</h4>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <p><strong>User ID:</strong> ${data.user?.id}</p>
+                            <p><strong>User Role:</strong> ${data.user?.role}</p>
+                            <p><strong>Token Present:</strong> ${data.access_token ? 'Yes' : 'No'}</p>
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Admin Login Failed</h4>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <p><strong>Error:</strong> ${data.message || 'Unknown error'}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Network Error</h4>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testCORS() {
+            const result = document.getElementById('corsResult');
+            result.innerHTML = '<p>Testing CORS...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/cars', {
+                    method: 'OPTIONS'
+                });
+                
+                result.innerHTML = `
+                    <div class="success">
+                        <h4>✅ CORS Test Completed</h4>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Access-Control-Allow-Origin:</strong> ${response.headers.get('Access-Control-Allow-Origin') || 'Not set'}</p>
+                        <p><strong>Access-Control-Allow-Methods:</strong> ${response.headers.get('Access-Control-Allow-Methods') || 'Not set'}</p>
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="error">
+                        <h4>❌ CORS Error</h4>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-run basic tests on page load
+        window.onload = function() {
+            setTimeout(testBackendConnection, 1000);
+        };
+    </script>
+</body>
+</html>
