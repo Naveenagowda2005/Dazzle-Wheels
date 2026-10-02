@@ -21,6 +21,8 @@ async function bootstrap() {
       const allowedPatterns = [
         /\.vercel\.app$/,
         /\.railway\.app$/,
+        /\.onrender\.com$/,
+        /\.netlify\.app$/,
       ];
       const frontendUrl = configService.get('FRONTEND_URL', '');
       if (frontendUrl) allowed.push(frontendUrl);
